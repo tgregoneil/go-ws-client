@@ -1,0 +1,21 @@
+{
+  "name": "go-ws-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "wsClientTst.html"
+  },
+  "keywords": [],
+  "author": "T. Greg O'Neil <go22.npm@gmail.com> (http://tgregoneil.com)",
+  "license": "ISC",
+  "readme": "readme.md",
+  "homepage": "https://github.com/tgregoneil/go-ws-client",
+  "repository": {
+    "url": "git+ssh://github.com/tgregoneil/go-ws-client.git",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/tgregoneil/go-ws-client/issues"
+  }
+}
