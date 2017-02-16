@@ -10,8 +10,9 @@ var _ = {
     secureConnection: null,
     verbose: null,
 
-    pcheck: require ('go-util').pCheck,
-    key1: require ('go-util').key1,
+    _.ut: require ('go-util'),
+    pcheck: null,
+    key1: null,
 
     wsServer: null
 
@@ -19,6 +20,9 @@ var _ = {
 
 //---------------------
 _.init = () => {
+
+    _.pcheck = _.ut.pCheck;
+    _.key1 = _.ut.key1;
 
     var params = _.pcheck (options, {secureConnection: false,
         verbose: false});

@@ -1,6 +1,6 @@
 {
   "name": "go-ws-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,6 +14,9 @@
   "repository": {
     "url": "git+ssh://github.com/tgregoneil/go-ws-client.git",
     "type": "git"
+  },
+  "dependencies": {
+    "go-util": "*"
   },
   "bugs": {
     "url": "https://github.com/tgregoneil/go-ws-client/issues"
