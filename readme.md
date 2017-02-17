@@ -5,7 +5,7 @@ Companion to go-ws-server
 *** NOTE: These instructions are repeated in go-ws-server/readme.md ***
 
 ### Installation
-Install browserify globally, then install client.
+Install browserify globally, then install go-ws-client.
 
 ```shell
 $ npm install -g browserify
