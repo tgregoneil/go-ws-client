@@ -1,4 +1,4 @@
 #!/bin/sh
 # doBrowserify.sh
 
-browserify wsClientTst.js -o wsClientBfied.js
+browserify wsClientTst.js --debug -o wsClientBfied.js

@@ -10,7 +10,7 @@ var _ = {
     secureConnection: null,
     verbose: null,
 
-    _.ut: require ('go-util'),
+    ut: require ('go-util'),
     pcheck: null,
     key1: null,
 
