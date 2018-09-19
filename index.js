@@ -3,64 +3,75 @@
 module.exports = function (ip, port, client, options) {
 
 // PRIVATE Properties/Methods
-var _ = {
+var v = {
     
     ip: ip,
     port: port,
     secureConnection: null,
-    verbose: null,
 
     ut: require ('go-util'),
+    minsec: require ('minsec').getMinSec,
+    msgShorten0: require ('msgshorten'),
+    msgSh: null,
     pcheck: null,
     key1: null,
 
-    wsServer: null
+    wsServer: null,
+    wsUrlOb: null,
 
 }; // end PRIVATE properties
+var f={};
 
 //---------------------
-_.init = () => {
+f.init = () => {
 
-    _.pcheck = _.ut.pCheck;
-    _.key1 = _.ut.key1;
+    v.pcheck = v.ut.pCheck;
+    v.key1 = v.ut.key1;
 
-    var params = _.pcheck (options, {secureConnection: false,
-        verbose: false});
+    //var targetLength = 80000;
+    var targetLength = 200;
+    v.msgSh = new v.msgShorten0 (targetLength);
 
-    _.secureConnection = params.secureConnection;
-    _.verbose = params.verbose;
+    var params = v.pcheck (options, {secureConnection: false});
 
-    if (_.verbose) {
+    v.secureConnection = params.secureConnection;
 
-        console.log ('wsClient params: ' + JSON.stringify (params) + '\n');
-
-    } // end if (_.verbose)
+        //console.log ('wsClient params: ' + JSON.stringify (params) + '\n');
     
-    _.tstCmds =  {ping: _.tstCmdPingResp};
-    _.client = client ? client : _.reportMsgOb;
+    v.tstCmds =  {ping: f.tstCmdPingResp};
+    v.client = client ? client : f.reportMsgOb;
 
-    var wsPrefix = _.secureConnection ? 'wss' : 'ws';
-    var wsUrl = wsPrefix + '://' + _.ip + ':' + _.port;
+    var wsPrefix = v.secureConnection ? 'wss' : 'ws';
+    var wsUrl = wsPrefix + '://' + v.ip + ':' + v.port;
 
-    _.wsServer = new WebSocket (wsUrl);
+    v.wsUrlOb = {
+        wsPrefix: wsPrefix,
+        ip: v.ip,
+        port: v.port
+    };
 
-    _.wsServer.onmessage = _.fromSrvr;
-    _.wsServer.onclose = _.msgClose;
-    _.wsServer.onerror = _.msgError;
+    //v.wsServer = new WebSocket (wsUrl, JSON.stringify (v.wsUrlOb));
+    v.wsServer = new WebSocket (wsUrl, v.ip);
+        // using v.ip as optional DOMString protocols: 
+        // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
 
-}; // end _.init 
+    v.wsServer.onmessage = f.fromSrvr;
+    v.wsServer.onclose = f.msgClose;
+    v.wsServer.onerror = f.msgError;
+
+}; // end f.init 
 
 
 //---------------------
-_.doCmd = (uMsgOb) => {
+f.doCmd = (uMsgOb) => {
 
+    /*
     var fromSrvr = JSON.stringify (uMsgOb);
+    var fromSrvrShort = v.msgShorten.msgShorten (fromSrvr);
+    */
+    var fromSrvrShort = v.msgSh.msgShorten (uMsgOb);
 
-    if (_.verbose) {
-        
-        console.log ('  ==> wsClient.fromSrvr: ' + fromSrvr);
-
-    } // end if (_.verbose)
+        //console.log ('  ==> wsClient.fromSrvr: ' + fromSrvrShort);
     
     uMsgOb = Array.isArray (uMsgOb) ? uMsgOb : [uMsgOb];
 
@@ -68,63 +79,59 @@ _.doCmd = (uMsgOb) => {
 
         var msgOb = uMsgOb [i];
 
-        var cmd = _.key1 (msgOb);
+        var cmd = v.key1 (msgOb);
     
-        if (_.tstCmds.hasOwnProperty (cmd)) {
+        if (v.tstCmds.hasOwnProperty (cmd)) {
     
-            _.tstCmds [cmd] (msgOb [cmd]);
+            v.tstCmds [cmd] (msgOb [cmd]);
     
         } else {
     
-            _.client (msgOb);
+            v.client (msgOb);
     
-        } // end if (_.tstCmds.hasOwnProperty (cmd))
+        } // end if (v.tstCmds.hasOwnProperty (cmd))
     
     } // end for (var i = 0; i < uMsgOb.length; i++)
 
-}; // end _.doCmd 
+}; // end f.doCmd 
 
 
 
 //---------------------
-_.doSend = (msg) => {
+f.doSend = (msg) => {
 
-    if (_.verbose) {
-
-        console.log ('_.doSend.msg: ' + msg + '\n');
-
-    } // end if (_.verbose)
+        //console.log ('f.doSend.msg: ' + msg + '\n');
     
-    _.wsServer.send (msg);
+    v.wsServer.send (msg);
 
-}; // end _.doSend 
+}; // end f.doSend 
 
 
 //---------------------
-_.fromSrvr = (event) => {
+f.fromSrvr = (event) => {
     
+    var time = v.minsec ();
     var msg = event.data;
+    msgOb = JSON.parse (msg);
+    //var msgm = JSON.parse (msg);
+    //var msgOb = msgm.m;
+    var msgObShort = v.msgSh.msgShorten (msgOb);
+        console.log ('<==== ' + time + ' wsClient.fromSrvr: ' + msgObShort + '\n');
 
-    if (_.verbose) {
-        
-        console.log ('_.fromSrvr.event.data: ' + msg);
+    f.doCmd (msgOb);
 
-    } // end if (_.verbose)
-    
-    _.doCmd (JSON.parse (msg).m);
-
-}; // end _.fromSrvr 
+}; // end f.fromSrvr 
 
 //---------------------
-_.msgClose = (event) => {
+f.msgClose = (event) => {
     
     console.log ('close event: ' + event.data);
 
-}; // end _.msgClose 
+}; // end f.msgClose 
 
 
 //---------------------
-_.msgError = (event) => {
+f.msgError = (event) => {
     
     var eventMsg = event.data ? ' event.data: ' + event.data : "";
     
@@ -133,49 +140,56 @@ _.msgError = (event) => {
 
     $('body').prepend (errMsg);
 
-}; // end _.msgClose 
+}; // end f.msgError 
 
 
 //---------------------
-_.reportMsgOb = (msgOb) => {
+f.reportMsgOb = (msgOb) => {
     
-    console.log ('_.reportMsgOb.msgOb: ' + msgOb + '\n');
+    console.log ('f.reportMsgOb.msgOb: ' + msgOb + '\n');
 
-}; // end _.reportMsgOb 
+}; // end f.reportMsgOb 
 
 
 //---------------------
-_.tstCmdPingResp = (pingMsg) => {
+f.tstCmdPingResp = (pingMsg) => {
     
     console.log ('ping: ' + pingMsg);
     return;
 
-}; // end _.tstCmdPingResp 
+}; // end f.tstCmdPingResp 
 
-_.init ();
+f.init ();
 
 
 
 // PUBLIC Properties/Methods
-var p = {};
+var P = {};
 
 //---------------------
-p.toSrvr = (msgOb) => {
+P.getWsUrl = () => {
     
-    var msgObS = JSON.stringify ({m:msgOb});
+    return v.wsUrlOb;
 
-    if (_.verbose) {
+}; // end P.getWsUrl
 
-        console.log ('p.toSrvr.msgObS : ' + msgObS + '\n');
 
-    } // end if (_.verbose)
+//---------------------
+P.toSrvr = (msgOb) => {
+    var time = v.minsec ();
+    var msgObShort = v.msgSh.msgShorten (msgOb);
+    console.log ('\n\n====> ' + time + ' wsClient.toSrvr: ' + msgObShort + '\n');
     
-    _.doSend (msgObS);
+    var msgObS = JSON.stringify (msgOb);
 
-}; // end _.toSrvr 
+        //console.log ('p.toSrvr.msgObS : ' + msgObS + '\n');
+    
+    f.doSend (msgObS);
+
+}; // end P.toSrvr 
 
 
-return p;
+return P;
 
 };
 

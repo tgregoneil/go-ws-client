@@ -1,6 +1,6 @@
 {
   "name": "go-ws-client",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Browser Websocket client used with go-ws-server",
   "main": "index.js",
   "scripts": {
